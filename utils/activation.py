@@ -35,4 +35,12 @@ def relu(z):
         return 0
 
 
+def softmax(z):
+    """
+    z:array-like shape(k,1)
+    y = ezi/sumezi
+    
+    """
+    sum = np.sum(np.exp(z))
+    return np.exp(z)/sum
 
