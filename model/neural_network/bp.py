@@ -1,7 +1,8 @@
 
 import numpy as np
-from utils.activation import sigmoid,tanh,relu
+from utils.activation import sigmoid,softmax
 import random
+
 
 
 class BaseNeuralNetwork(object):
@@ -11,7 +12,6 @@ class BaseNeuralNetwork(object):
                  hidden_nodes,
                  output_nodes,
                  *,
-                 opitimation='sgd',
                  learning_rate,
                  epochs,
                  batch):
@@ -20,7 +20,6 @@ class BaseNeuralNetwork(object):
         self.hidden = hidden_nodes
         self.output = output_nodes
 
-        self.optimation = opitimation
         self.lr = learning_rate
         self.epochs = epochs
 
@@ -43,25 +42,39 @@ class BaseNeuralNetwork(object):
 
         X = np.array(X,ndim=2,dtype='float32')
         y = np.array(y,ndim=2,dtype='float32')
+        self.X=X
+        self.y=y
 
         self.sample = X.shape[0]
         
-        h = sigmoid(np.dot(X,self.weight_ih))
-        y_pre = sigmoid(np.dot(h,self.weight_ho))
+        self.hidden_input = np.dot(X,self.weight_ih)
+        self.hidden_output = sigmoid(np.dot(self.hidden_input))
+
+        self.output_input = np.dot(self.weight_ho,self.hidden_output)
+        self.output_output = softmax(self.output_input)
+    
         
-        #计算每一层的error
-        error_output = y_pre - y
-        error_ih = np.dot(self.weight_ho,error_output.T)
-        return 
+        #cal error
+        self.error_output = -np.sum(y*np.log(y_pre)) #softmax ---cross entropy
+        self.error_ho = np.dot(error_output,self.weight_ho.T)
+        self.error_ih = np.dot(error_ho,self.weight_ih.T)
+
+        return self
+    def parameter_update(self):
+        self.weight_ho_loss_function = self.output_output-self.y
+        self.weight_ho_gradient = np.dot(self.weight_ho_loss_function,self.hidden_output)
+        """
+        continue
+        """
+        pass
+
     
     
-    #function
-    def graddescent(self,X,y):
-        num_train,num_feature = X.shape
-        for _ in range(self.epochs):
-            error = self.forward(X,y)
-            #update
-            self.weight_ho = self.weight_ho +self.lr*np.dot(X,y)
+
+
+
+            
+
 
             
 
@@ -71,46 +84,3 @@ class BaseNeuralNetwork(object):
 
 
 
-    def train(self,X,y):
-        if self.optimation == 'mini-batch':
-
-            pass
-        elif self.optimation == 'gd':
-            pass
-        elif self.optimation == 'sgd':
-            pass
-        else:
-            raise ValueError('you must choose right optimation.')
-        
-
-
-    def predict(self):
-        pass
-
-def stocgraddescent(X,y,lr:float,max_iter:int,mini_loss):
-
-    #just one sample
-    num_sample,num_feature =X.shape
-
-    w = np.ones((num_feature,))#initialise weight
-    costs = []
-    for i in range(max_iter):
-        for j in range(num_sample):
-            lr = lr*(1/(i+j))+0.01 #adjust learning rate <i>
-            randomindex = int(random.uniform(0,num_sample))
-            y_pre_i = sigmoid(np.dot(X[randomindex],w))
-
-            error = y[i] - y_pre_i
-            dw = error*X[i]
-            w = w +lr*dw
-    y_pre = np.dot(X,w)
-    cost = CrossEntropyLoss(y,y_pre)
-    costs.append(cost)
-
-    return w ,costs
-
-def minibatch(X,y,lr,max_iter):
-    pass
-
-
-def bp(error):
